@@ -1,7 +1,7 @@
 # Introduction
 This library contains Message Bus - a fast and reliable bus for Android. Visit [Message Bus Website](http://robo-creative.github.io/messagebus/) for brief guidelines.
 
-Visit [Robo Creative Official Page](http://robo-creative.github.io/) to find more interesting stuffs we contributed to Android community.
+Visit [Robo Creative Official Page](http://robo-creative.github.io/) to all more interesting stuffs we contributed to Android community.
 # License
 ```
 Copyright 2016 Robo Creative - http://robo-creative.github.io
