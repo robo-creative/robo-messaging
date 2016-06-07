@@ -29,29 +29,34 @@ final class SubscriptionBuilder {
     }
 
     public <TMessage extends Message> Subscription<TMessage> build(SubscriptionToken token, Subscriber<TMessage> subscriber, int priority,
-                                                   boolean acceptsChildMessages, ThreadOption threadOption,
-                                                   boolean keepSubscriberAlive) {
+                                                                   boolean acceptsChildMessages, ThreadOption threadOption,
+                                                                   boolean keepSubscriberAlive) {
+        PublishingStrategy<TMessage> publishingStrategy;
         switch (threadOption) {
             case PUBLISHER:
-                return new Subscription<>(token,
-                        createSubscriberReference(subscriber, keepSubscriberAlive),
-                        priority, acceptsChildMessages,
-                        new PublisherThreadPublishingStrategy<TMessage>());
+                publishingStrategy = new PublisherThreadPublishingStrategy<>();
+                break;
             case BACKGROUND:
-                return new Subscription<>(token,
-                        createSubscriberReference(subscriber, keepSubscriberAlive),
-                        priority, acceptsChildMessages,
-                        new BackgroundPublishingStrategy<TMessage>(mExecutorService));
+                publishingStrategy = new BackgroundPublishingStrategy<>(mExecutorService);
+                break;
             default: // case UI:
-                return new Subscription<>(token,
-                        createSubscriberReference(subscriber, keepSubscriberAlive),
-                        priority, acceptsChildMessages,
-                        new UIPublishingStrategy<TMessage>(mMainLooper));
+                publishingStrategy = new UIPublishingStrategy<>(mMainLooper);
+                break;
         }
+        return build(token, subscriber, priority, acceptsChildMessages, publishingStrategy, keepSubscriberAlive);
+    }
+
+    public <TMessage extends Message> Subscription<TMessage> build(SubscriptionToken token, Subscriber<TMessage> subscriber, int priority,
+                                                                   boolean acceptsChildMessages, PublishingStrategy<TMessage> publishingStrategy,
+                                                                   boolean keepSubscriberAlive) {
+        return new Subscription<>(token,
+                createSubscriberReference(subscriber, keepSubscriberAlive),
+                priority, acceptsChildMessages,
+                publishingStrategy);
     }
 
     private <TMessage extends Message> SubscriberReference<TMessage> createSubscriberReference(Subscriber<TMessage> subscriber,
-                                                                               boolean keepSubscriberAlive) {
+                                                                                               boolean keepSubscriberAlive) {
         return keepSubscriberAlive ? new StrongSubscriberReference<>(subscriber)
                 : new WeakSubscriberReference<>(subscriber);
     }

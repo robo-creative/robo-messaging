@@ -80,11 +80,16 @@ public class MessageBusImp implements MessageBus {
         Type messageType = TypeUtils.getGenericParameterType(subscriber, 0);
         addSubscription(messageType, mSubscriptionBuilder.build(getSubscriptionToken(subscriber), subscriber, priority, acceptsChildMessages, threadOption, keepSubscriberAlive));
         if (receiveHistoricMessages) {
-            Collection<Message> historicMessages = mMessageRepository.find((Class<? extends Message>) messageType, acceptsChildMessages);
-            for (Message message : historicMessages) {
-                message.setHistoric(true);
-                subscriber.receive((TMessage) message);
-            }
+            publishHistoricMessages(subscriber, (Class<? extends Message>) messageType, acceptsChildMessages);
+        }
+    }
+
+    @Override
+    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, PublishingStrategy<TMessage> publishingStrategy, boolean keepSubscriberAlive) {
+        Type messageType = TypeUtils.getGenericParameterType(subscriber, 0);
+        addSubscription(messageType, mSubscriptionBuilder.build(getSubscriptionToken(subscriber), subscriber, priority, acceptsChildMessages, publishingStrategy, keepSubscriberAlive));
+        if (receiveHistoricMessages) {
+            publishHistoricMessages(subscriber, (Class<? extends Message>) messageType, acceptsChildMessages);
         }
     }
 
@@ -106,7 +111,7 @@ public class MessageBusImp implements MessageBus {
     }
 
     @Override
-    public <TMessage extends Message> void publish(TMessage message, boolean keepInHistory, PublishingCallback callback) {
+    public <TMessage extends Message> void publish(TMessage message, boolean keepInHistory, PublisherCallback callback) {
         Guard.isNotNull(message, IllegalArgumentException.class, "message");
         Subscription<TMessage>[] subscriptionsSnapshot = purgeAndGetSubscriptions(message);
         if (null != callback) {
@@ -138,6 +143,14 @@ public class MessageBusImp implements MessageBus {
     @Override
     public int getHistoryCount() {
         return mMessageRepository.size();
+    }
+
+    private <TMessage extends Message> void publishHistoricMessages(Subscriber<TMessage> subscriber, Class<? extends Message> messageType, boolean acceptsChildMessages) {
+        Collection<Message> historicMessages = mMessageRepository.find(messageType, acceptsChildMessages);
+        for (Message message : historicMessages) {
+            message.setHistoric(true);
+            subscriber.receive((TMessage) message);
+        }
     }
 
     synchronized private <TMessage extends Message> void addSubscription(Type messageType, Subscription<TMessage> subscription) {

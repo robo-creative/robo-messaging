@@ -41,9 +41,9 @@ public interface MessageBus {
     /**
      * Subscribes a subscriber to receive messages of a specified type.
      *
-     * @param subscriber             The subscriber.
-     * @param priority               Indicates priority of this subscriber. The lower number, the sooner this
-     *                               subscriber receives messages than the other.
+     * @param subscriber           The subscriber.
+     * @param priority             Indicates priority of this subscriber. The lower number, the sooner this
+     *                             subscriber receives messages than the other.
      * @param acceptsChildMessages Flag, determines if this subscriber also accepts messages of children type.
      */
     <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages);
@@ -54,11 +54,11 @@ public interface MessageBus {
      * @param subscriber              The subscriber.
      * @param priority                Indicates priority of this subscriber. The lower number, the sooner this
      *                                subscriber receives messages than the other.
-     * @param acceptsChildMessages  Flag, determines if this subscriber also accepts messages of children type.
+     * @param acceptsChildMessages    Flag, determines if this subscriber also accepts messages of children type.
      * @param receiveHistoricMessages Flag, indicates if the subscriber also wants to receive historic messages.
      */
     <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
-                              boolean receiveHistoricMessages);
+                                              boolean receiveHistoricMessages);
 
     /**
      * Subscribes a subscriber to receive messages of a specified type.
@@ -66,26 +66,41 @@ public interface MessageBus {
      * @param subscriber              The subscriber.
      * @param priority                Indicates priority of this subscriber. The lower number, the sooner this
      *                                subscriber receives messages than the other.
-     * @param acceptsChildMessages  Flag, determines if this subscriber also accepts messages of children type.
+     * @param acceptsChildMessages    Flag, determines if this subscriber also accepts messages of children type.
      * @param receiveHistoricMessages Flag, indicates if the subscriber also wants to receive historic messages.
      * @param threadOption            Specifies delivery thread.
      */
     <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
-                              boolean receiveHistoricMessages, ThreadOption threadOption);
+                                              boolean receiveHistoricMessages, ThreadOption threadOption);
 
     /**
      * Subscribes a subscriber to receive messages of a specified type.
      *
-     * @param subscriber             The receiver.
-     * @param priority               Indicates priority of this subscriber. The lower number, the sooner this
-     *                               subscriber receives messages than the other.
+     * @param subscriber           The receiver.
+     * @param priority             Indicates priority of this subscriber. The lower number, the sooner this
+     *                             subscriber receives messages than the other.
      * @param acceptsChildMessages Flag, determines if this subscriber also accepts messages of children type.
-     * @param threadOption           Specifies delivery thread.
-     * @param keepSubscriberAlive    If true, the message bus will keep a strong reference to the
-     *                               subscriber until the subscriber is unsubscribed.
+     * @param threadOption         Specifies delivery thread.
+     * @param keepSubscriberAlive  If true, the message bus will keep a strong reference to the
+     *                             subscriber until the subscriber is unsubscribed.
      */
     <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
-                              boolean receiveHistoricMessages, ThreadOption threadOption, boolean keepSubscriberAlive);
+                                              boolean receiveHistoricMessages, ThreadOption threadOption, boolean keepSubscriberAlive);
+
+    /**
+     * Subscribes a subscriber to receive messages of a specified type.
+     *
+     * @param subscriber           The receiver.
+     * @param priority             Indicates priority of this subscriber. The lower number, the sooner this
+     *                             subscriber receives messages than the other.
+     * @param acceptsChildMessages Flag, determines if this subscriber also accepts messages of children type.
+     * @param publishingStrategy   Specifies strategy to deliver messages.
+     * @param keepSubscriberAlive  If true, the message bus will keep a strong reference to the
+     *                             subscriber until the subscriber is unsubscribed.
+     */
+    <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
+                                              boolean receiveHistoricMessages, PublishingStrategy<TMessage> publishingStrategy, boolean keepSubscriberAlive);
+
 
     /**
      * Cancels subscription for a specified subscriber.
@@ -116,7 +131,7 @@ public interface MessageBus {
      * @param keepInHistory Flag, indicates if the message will be kept in history for sending to late-bound subscribers.
      * @param callback      A callback object that allows message bus to interact with the publisher.
      */
-    <TMessage extends Message> void publish(TMessage message, boolean keepInHistory, PublishingCallback callback);
+    <TMessage extends Message> void publish(TMessage message, boolean keepInHistory, PublisherCallback callback);
 
     /**
      * Removes a historic message from history.

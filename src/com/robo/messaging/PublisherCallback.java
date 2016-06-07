@@ -20,7 +20,7 @@ package com.robo.messaging;
  *
  * @author robo-admin
  */
-public interface PublishingCallback {
+public interface PublisherCallback {
 
     /**
      * Called when there is no subscriber for a particular message.

@@ -23,7 +23,7 @@ package com.robo.messaging;
  *
  * @param <TMessage>
  */
-interface PublishingStrategy<TMessage extends Message> {
+public interface PublishingStrategy<TMessage extends Message> {
 
 	void deliverMessage(Subscriber<TMessage> subscriber, TMessage message);
 }
