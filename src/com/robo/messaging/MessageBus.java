@@ -26,8 +26,9 @@ public interface MessageBus {
      * Subscribes a subscriber to receive messages of a specified type.
      *
      * @param subscriber The subscriber.
+     * @return A subscription token for subscriber. This token is used for cancellation of subscription later on.
      */
-    <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber);
+    <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber);
 
     /**
      * Subscribes a subscriber to receive messages of a specified type.
@@ -35,8 +36,9 @@ public interface MessageBus {
      * @param subscriber The subscriber.
      * @param priority   Indicates priority of this subscriber. The lower number, the sooner this
      *                   subscriber receives messages than the other.
+     * @return A subscription token for subscriber. This token is used for cancellation of subscription later on.
      */
-    <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority);
+    <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority);
 
     /**
      * Subscribes a subscriber to receive messages of a specified type.
@@ -45,8 +47,9 @@ public interface MessageBus {
      * @param priority             Indicates priority of this subscriber. The lower number, the sooner this
      *                             subscriber receives messages than the other.
      * @param acceptsChildMessages Flag, determines if this subscriber also accepts messages of children type.
+     * @return A subscription token for subscriber. This token is used for cancellation of subscription later on.
      */
-    <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages);
+    <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages);
 
     /**
      * Subscribes a subscriber to receive messages of a specified type.
@@ -56,9 +59,10 @@ public interface MessageBus {
      *                                subscriber receives messages than the other.
      * @param acceptsChildMessages    Flag, determines if this subscriber also accepts messages of children type.
      * @param receiveHistoricMessages Flag, indicates if the subscriber also wants to receive historic messages.
+     * @return A subscription token for subscriber. This token is used for cancellation of subscription later on.
      */
-    <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
-                                              boolean receiveHistoricMessages);
+    <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
+                                                           boolean receiveHistoricMessages);
 
     /**
      * Subscribes a subscriber to receive messages of a specified type.
@@ -69,9 +73,10 @@ public interface MessageBus {
      * @param acceptsChildMessages    Flag, determines if this subscriber also accepts messages of children type.
      * @param receiveHistoricMessages Flag, indicates if the subscriber also wants to receive historic messages.
      * @param threadOption            Specifies delivery thread.
+     * @return A subscription token for subscriber. This token is used for cancellation of subscription later on.
      */
-    <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
-                                              boolean receiveHistoricMessages, ThreadOption threadOption);
+    <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
+                                                           boolean receiveHistoricMessages, ThreadOption threadOption);
 
     /**
      * Subscribes a subscriber to receive messages of a specified type.
@@ -83,9 +88,10 @@ public interface MessageBus {
      * @param threadOption         Specifies delivery thread.
      * @param keepSubscriberAlive  If true, the message bus will keep a strong reference to the
      *                             subscriber until the subscriber is unsubscribed.
+     * @return A subscription token for subscriber. This token is used for cancellation of subscription later on.
      */
-    <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
-                                              boolean receiveHistoricMessages, ThreadOption threadOption, boolean keepSubscriberAlive);
+    <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
+                                                           boolean receiveHistoricMessages, ThreadOption threadOption, boolean keepSubscriberAlive);
 
     /**
      * Subscribes a subscriber to receive messages of a specified type.
@@ -97,17 +103,18 @@ public interface MessageBus {
      * @param publishingStrategy   Specifies strategy to deliver messages.
      * @param keepSubscriberAlive  If true, the message bus will keep a strong reference to the
      *                             subscriber until the subscriber is unsubscribed.
+     * @return A subscription token for subscriber. This token is used for cancellation of subscription later on.
      */
-    <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
-                                              boolean receiveHistoricMessages, PublishingStrategy<TMessage> publishingStrategy, boolean keepSubscriberAlive);
+    <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages,
+                                                           boolean receiveHistoricMessages, PublishingStrategy<TMessage> publishingStrategy, boolean keepSubscriberAlive);
 
 
     /**
      * Cancels subscription for a specified subscriber.
      *
-     * @param subscriber The subscriber.
+     * @param subscriptionToken The subscription token allocated for the subscriber.
      */
-    <TMessage extends Message> void unsubscribe(Subscriber<TMessage> subscriber);
+    <TMessage extends Message> void unsubscribe(SubscriptionToken subscriptionToken);
 
     /**
      * Publishes a message.

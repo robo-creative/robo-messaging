@@ -15,6 +15,10 @@
  */
 package com.robo.messaging;
 
+import com.robo.reflect.TypeUtils;
+
+import java.util.UUID;
+
 /**
  * Generates token based on UUID.
  *
@@ -23,6 +27,6 @@ package com.robo.messaging;
 public class UUIDTokenGenerator implements TokenGenerator {
     @Override
     public SubscriptionToken generateToken(Subscriber<?> subscriber) {
-        return new UUIDToken();
+        return new UUIDToken(UUID.randomUUID(), (Class<? extends Message>)TypeUtils.getGenericParameterType(subscriber.getClass(), 0));
     }
 }

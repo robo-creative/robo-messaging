@@ -17,10 +17,19 @@
 package com.robo.messaging;
 
 /**
- * A subscription token for identifying subscription of a subscriber.
+ * Provides the base class for implementing subscription token for identifying subscription of a subscriber.
  *
  * @author robo-admin
  */
-public interface SubscriptionToken {
+public abstract class SubscriptionToken {
 
+    private Class<? extends Message> mMessageType;
+
+    public final Class<? extends Message> getMessageType() {
+        return mMessageType;
+    }
+
+    protected SubscriptionToken(Class<? extends Message> messageType) {
+        mMessageType = messageType;
+    }
 }

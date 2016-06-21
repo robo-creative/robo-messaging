@@ -35,7 +35,6 @@ public class MessageBusImp implements MessageBus {
     private MessageRepository mMessageRepository;
     private Map<Class<?>, List<Class<?>>> mMessageSuperTypeMap;
     private TokenGenerator mTokenGenerator;
-    private WeakHashMap<Subscriber<?>, SubscriptionToken> mManagedTokens;
 
     public MessageBusImp() {
         this(new UUIDTokenGenerator(), Executors.newCachedThreadPool(), new InMemoryMessageRepository());
@@ -47,57 +46,56 @@ public class MessageBusImp implements MessageBus {
         mTokenGenerator = tokenGenerator;
         mSubscriptionBuilder = new SubscriptionBuilder(executorService);
         mMessageRepository = messageRepository;
-        mManagedTokens = new WeakHashMap<>();
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber) {
-        subscribe(subscriber, 0);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber) {
+        return subscribe(subscriber, 0);
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority) {
-        subscribe(subscriber, priority, true);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority) {
+        return subscribe(subscriber, priority, true);
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages) {
-        subscribe(subscriber, priority, acceptsChildMessages, false);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages) {
+        return subscribe(subscriber, priority, acceptsChildMessages, false);
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages) {
-        subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages, ThreadOption.PUBLISHER);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages) {
+        return subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages, ThreadOption.PUBLISHER);
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, ThreadOption threadOption) {
-        subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages, ThreadOption.PUBLISHER, false);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, ThreadOption threadOption) {
+        return subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages, ThreadOption.PUBLISHER, false);
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, ThreadOption threadOption, boolean keepSubscriberAlive) {
-        Type messageType = TypeUtils.getGenericParameterType(subscriber, 0);
-        addSubscription(messageType, mSubscriptionBuilder.build(getSubscriptionToken(subscriber), subscriber, priority, acceptsChildMessages, threadOption, keepSubscriberAlive));
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, ThreadOption threadOption, boolean keepSubscriberAlive) {
+        SubscriptionToken subscriptionToken = getSubscriptionToken(subscriber);
+        addSubscription(subscriptionToken.getMessageType(), mSubscriptionBuilder.build(subscriptionToken, subscriber, priority, acceptsChildMessages, threadOption, keepSubscriberAlive));
         if (receiveHistoricMessages) {
-            publishHistoricMessages(subscriber, (Class<? extends Message>) messageType, acceptsChildMessages);
+            publishHistoricMessages(subscriber, subscriptionToken.getMessageType(), acceptsChildMessages);
         }
+        return subscriptionToken;
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, PublishingStrategy<TMessage> publishingStrategy, boolean keepSubscriberAlive) {
-        Type messageType = TypeUtils.getGenericParameterType(subscriber, 0);
-        addSubscription(messageType, mSubscriptionBuilder.build(getSubscriptionToken(subscriber), subscriber, priority, acceptsChildMessages, publishingStrategy, keepSubscriberAlive));
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, PublishingStrategy<TMessage> publishingStrategy, boolean keepSubscriberAlive) {
+        SubscriptionToken subscriptionToken = getSubscriptionToken(subscriber);
+        addSubscription(subscriptionToken.getMessageType(), mSubscriptionBuilder.build(subscriptionToken, subscriber, priority, acceptsChildMessages, publishingStrategy, keepSubscriberAlive));
         if (receiveHistoricMessages) {
-            publishHistoricMessages(subscriber, (Class<? extends Message>) messageType, acceptsChildMessages);
+            publishHistoricMessages(subscriber, subscriptionToken.getMessageType(), acceptsChildMessages);
         }
+        return subscriptionToken;
     }
 
     @Override
-    public <TMessage extends Message> void unsubscribe(Subscriber<TMessage> subscriber) {
-        removeSubscription(TypeUtils.getGenericParameterType(subscriber, 0),
-                getSubscriptionToken(subscriber));
-        removeSubscriptionToken(subscriber);
+    public <TMessage extends Message> void unsubscribe(SubscriptionToken subscriptionToken) {
+        removeSubscription(subscriptionToken);
     }
 
     @Override
@@ -164,12 +162,12 @@ public class MessageBusImp implements MessageBus {
         byMessageSubscriptions.add(subscription);
     }
 
-    synchronized private void removeSubscription(Type messageType, SubscriptionToken token) {
-        if (mSubscriptions.containsKey(messageType)) {
-            Subscriptions byMessageSubscriptions = mSubscriptions.get(messageType);
+    synchronized private void removeSubscription(SubscriptionToken token) {
+        if (mSubscriptions.containsKey(token.getMessageType())) {
+            Subscriptions byMessageSubscriptions = mSubscriptions.get(token.getMessageType());
             byMessageSubscriptions.removeByKey(token);
             if (byMessageSubscriptions.size() == 0) {
-                mSubscriptions.remove(messageType);
+                mSubscriptions.remove(token.getMessageType());
             }
         }
     }
@@ -223,17 +221,6 @@ public class MessageBusImp implements MessageBus {
     }
 
     private SubscriptionToken getSubscriptionToken(Subscriber<?> subscriber) {
-        SubscriptionToken token;
-        if (mManagedTokens.containsKey(subscriber)) {
-            token = mManagedTokens.get(subscriber);
-        } else {
-            token = mTokenGenerator.generateToken(subscriber);
-            mManagedTokens.put(subscriber, token);
-        }
-        return token;
-    }
-
-    private void removeSubscriptionToken(Subscriber<?> subscriber) {
-        mManagedTokens.remove(subscriber);
+        return mTokenGenerator.generateToken(subscriber);
     }
 }

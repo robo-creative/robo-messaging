@@ -22,11 +22,12 @@ import java.util.UUID;
  *
  * @author robo-admin
  */
-public class UUIDToken implements SubscriptionToken {
+public class UUIDToken extends SubscriptionToken {
     private final UUID mId;
 
-    public UUIDToken() {
-        mId = UUID.randomUUID();
+    public UUIDToken(UUID uuid, Class<? extends Message> messageType) {
+        super(messageType);
+        mId = uuid;
     }
 
     @Override
